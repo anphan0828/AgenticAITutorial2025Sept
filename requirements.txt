@@ -9,7 +9,9 @@ langchain-openai>=0.0.5
 langchain-anthropic>=0.1.0
 langchain-community>=0.0.20
 langchain-experimental>=0.0.50
+langchain-classic>=1.0.0  # For backwards compatibility with older agent APIs
 langgraph>=0.0.40
+langgraph-checkpoint-sqlite>=3.0.0  # Required for SqliteSaver persistence
 
 # CrewAI
 crewai>=0.22.0

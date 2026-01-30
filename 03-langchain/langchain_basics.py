@@ -18,10 +18,9 @@ from langchain_core.callbacks import StdOutCallbackHandler
 
 # Modern tool patterns
 from langchain_core.tools import tool, Tool
-from langchain.agents import create_react_agent, create_structured_chat_agent, AgentExecutor
-from langchain.agents.format_scratchpad import format_to_openai_function_messages
-from langchain.agents.output_parsers import OpenAIFunctionsAgentOutputParser
-from langchain import hub
+# Import from langchain_classic for backwards compatibility
+from langchain_classic.agents import AgentExecutor, create_react_agent
+from langchain_classic import hub
 
 # Load environment variables
 load_dotenv()
