@@ -104,7 +104,7 @@ class APIComparator:
                 error=str(e)
             )
 
-    def call_anthropic(self, prompt: str, model: str = "claude-3-sonnet-20240229", max_tokens: int = 500) -> APIResponse:
+    def call_anthropic(self, prompt: str, model: str = "claude-3-5-haiku-latest", max_tokens: int = 500) -> APIResponse:
         """Call Anthropic API"""
         if not self.anthropic_client:
             return APIResponse(

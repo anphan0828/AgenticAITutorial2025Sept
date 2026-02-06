@@ -13,13 +13,13 @@ from dotenv import load_dotenv
 # LangChain imports
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
-from langchain.agents import AgentType, initialize_agent, Tool, AgentExecutor
-from langchain.memory import ConversationBufferWindowMemory
-from langchain.tools.base import BaseTool
-from langchain.callbacks import StdOutCallbackHandler
-from langchain.schema import AgentAction, AgentFinish
-from langchain.agents.agent import AgentOutputParser
-from langchain.prompts import StringPromptTemplate
+from langchain_classic.agents import AgentType, initialize_agent, Tool, AgentExecutor
+from langchain_classic.memory import ConversationBufferWindowMemory
+from langchain_classic.tools.base import BaseTool
+from langchain_classic.callbacks import StdOutCallbackHandler
+from langchain_classic.schema import AgentAction, AgentFinish
+from langchain_classic.agents.agent import AgentOutputParser
+from langchain_classic.prompts import StringPromptTemplate
 from pydantic import BaseModel, Field
 
 load_dotenv()

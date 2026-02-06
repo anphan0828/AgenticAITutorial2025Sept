@@ -25,7 +25,7 @@ class ConversationTurn:
 class ClaudeAgent:
     """Agent using Anthropic's Claude model with advanced features"""
 
-    def __init__(self, model: str = "claude-3-7-sonnet-latest"):
+    def __init__(self, model: str = "claude-sonnet-4-5-20250929"):
         api_key = os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
             raise ValueError("ANTHROPIC_API_KEY not found in environment variables")
@@ -397,7 +397,7 @@ class ClaudeComparison:
         self.models = [
             "claude-3-5-haiku-latest",    # Fast and efficient
             "claude-opus-4-1-20250805",   # Balanced performance
-            "claude-3-7-sonnet-latest"      # Highest capability (if available)
+            "claude-sonnet-4-5-20250929"      # Highest capability (if available)
         ]
 
     def compare_models(self, prompt: str) -> Dict[str, Dict[str, Any]]:

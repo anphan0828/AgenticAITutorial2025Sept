@@ -421,7 +421,7 @@ def demonstrate_streaming_workflow():
         ])
 
         chain = prompt | llm
-        response = chain.invoke({"messages": messages}, config)
+        response = chain.invoke({"messages": messages}, config) # TODO: should be stream
 
         return {
             "messages": [response],

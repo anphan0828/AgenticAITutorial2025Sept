@@ -420,8 +420,8 @@ def main():
     print("2. Memory Retrieval Practice")
     print("3. Design Custom Memory")
 
-    # Run comparison exercise
-    memory_systems = compare_memory_systems()
+    # # Run comparison exercise
+    # memory_systems = compare_memory_systems()
 
     while True:
         print("\\n" + "="*40)

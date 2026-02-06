@@ -100,6 +100,7 @@ def demonstrate_lcel_chains():
     ])
 
     # Complex chain using LCEL
+    # Every step's output feeds into the next
     complex_chain = (
         RunnablePassthrough()
         | {"topic": topic_prompt | llm | StrOutputParser()}
@@ -133,6 +134,7 @@ def demonstrate_modern_agents():
 
     from langchain_core.tools import tool, Tool
     # Define tools using the modern @tool decorator
+    # Automatically creates the signature and description
     @tool
     def python_calculator(expression: str) -> str:
         """Calculate mathematical expressions safely."""
@@ -246,7 +248,7 @@ def demonstrate_structured_output():
         print("❌ OpenAI API key required for this demo")
         return
 
-    from langchain_core.pydantic_v1 import BaseModel, Field
+    from pydantic import BaseModel, Field
     from typing import List
 
     # Define output structure
@@ -257,9 +259,10 @@ def demonstrate_structured_output():
         personality_traits: List[str] = Field(description="List of personality traits")
         summary: str = Field(description="Brief summary")
 
-    llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
+    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
     # Use modern structured output method
+    # Providing structure as defined in the class to the LLM
     structured_llm = llm.with_structured_output(PersonAnalysis)
 
     prompt = ChatPromptTemplate.from_messages([
@@ -310,6 +313,7 @@ def demonstrate_streaming():
     print("-" * 20)
 
     try:
+        # instead of invoke, use stream to get real-time output
         for chunk in chain.stream({"topic": "a robot learning to paint"}):
             print(chunk, end="", flush=True)
         print("\n")

@@ -16,11 +16,11 @@ from dotenv import load_dotenv
 
 # LangChain imports
 from langchain_openai import ChatOpenAI
-from langchain.agents import AgentType, initialize_agent, Tool
-from langchain.memory import ConversationSummaryBufferMemory
-from langchain.tools.base import BaseTool
-from langchain.chains import LLMChain
-from langchain.prompts import PromptTemplate
+from langchain.agents import create_agent
+from langchain_core.tools import BaseTool
+from pydantic import PrivateAttr
+# from langchain.chains import LLMChain
+# from langchain.prompts import PromptTemplate
 
 load_dotenv()
 
@@ -72,14 +72,12 @@ class SalesAnalysisTool(BaseTool):
     name: str = "sales_analyzer"
     description: str = "Analyze sales data and generate insights. Input: 'summary', 'trends', or 'forecast'"
 
-    def __init__(self):
-        super().__init__()
-        self.data_manager = BusinessDataManager()
+    _data_manager: BusinessDataManager = PrivateAttr(default_factory=BusinessDataManager)
 
     def _run(self, analysis_type: str) -> str:
         """Perform sales analysis"""
         try:
-            sales_data = self.data_manager.sales_data
+            sales_data = self._data_manager.sales_data
             analysis_type = analysis_type.lower().strip()
 
             if analysis_type == "summary":
@@ -204,14 +202,12 @@ class EmployeeAnalysisTool(BaseTool):
     name: str = "employee_analyzer"
     description: str = "Analyze employee data and HR metrics. Input: 'overview', 'performance', or 'compensation'"
 
-    def __init__(self):
-        super().__init__()
-        self.data_manager = BusinessDataManager()
+    _data_manager: BusinessDataManager = PrivateAttr(default_factory=BusinessDataManager)
 
     def _run(self, analysis_type: str) -> str:
         """Perform employee analysis"""
         try:
-            employee_data = self.data_manager.employee_data
+            employee_data = self._data_manager.employee_data
             analysis_type = analysis_type.lower().strip()
 
             if analysis_type == "overview":
@@ -358,14 +354,12 @@ class CustomerFeedbackTool(BaseTool):
     name: str = "feedback_analyzer"
     description: str = "Analyze customer feedback and satisfaction. Input: 'summary' or 'insights'"
 
-    def __init__(self):
-        super().__init__()
-        self.data_manager = BusinessDataManager()
+    _data_manager: BusinessDataManager = PrivateAttr(default_factory=BusinessDataManager)
 
     def _run(self, analysis_type: str) -> str:
         """Perform customer feedback analysis"""
         try:
-            feedback_data = self.data_manager.customer_feedback
+            feedback_data = self._data_manager.customer_feedback
             analysis_type = analysis_type.lower().strip()
 
             if analysis_type == "summary":
@@ -489,13 +483,10 @@ class BusinessReportGenerator(BaseTool):
     name: str = "report_generator"
     description: str = "Generate comprehensive business reports. Input: 'executive' for executive summary, 'detailed' for full analysis"
 
-    def __init__(self):
-        super().__init__()
-        self.data_manager = BusinessDataManager()
-        # Initialize other tools to gather data
-        self.sales_tool = SalesAnalysisTool()
-        self.employee_tool = EmployeeAnalysisTool()
-        self.feedback_tool = CustomerFeedbackTool()
+    _data_manager: BusinessDataManager = PrivateAttr(default_factory=BusinessDataManager)
+    _sales_tool: SalesAnalysisTool = PrivateAttr(default_factory=SalesAnalysisTool)
+    _employee_tool: EmployeeAnalysisTool = PrivateAttr(default_factory=EmployeeAnalysisTool)
+    _feedback_tool: CustomerFeedbackTool = PrivateAttr(default_factory=CustomerFeedbackTool)
 
     def _run(self, report_type: str) -> str:
         """Generate business reports"""
@@ -504,15 +495,17 @@ class BusinessReportGenerator(BaseTool):
 
             if report_type == "executive":
                 # Generate executive summary
-                sales_summary = self.sales_tool._run("summary")
-                employee_overview = self.employee_tool._run("overview")
-                feedback_summary = self.feedback_tool._run("summary")
+                sales_summary = self._sales_tool._run("summary")
+                employee_overview = self._employee_tool._run("overview")
+                feedback_summary = self._feedback_tool._run("summary")
 
                 # Extract key metrics
-                total_revenue = sum(item["revenue"] for item in self.data_manager.sales_data)
-                total_employees = len(self.data_manager.employee_data)
-                avg_rating = sum(item["rating"] for item in self.data_manager.customer_feedback) / len(self.data_manager.customer_feedback)
-                total_expenses = sum(item["amount"] for item in self.data_manager.expense_data)
+                total_revenue = sum(item["revenue"] for item in self._data_manager.sales_data)
+                total_employees = len(self._data_manager.employee_data)
+                avg_rating = sum(item["rating"] for item in self._data_manager.customer_feedback) / len(
+                    self._data_manager.customer_feedback
+                )
+                total_expenses = sum(item["amount"] for item in self._data_manager.expense_data)
 
                 exec_summary = f"""
 📊 EXECUTIVE BUSINESS SUMMARY
@@ -540,7 +533,7 @@ Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M')}
 ⚠️  IMMEDIATE ACTION ITEMS:
    • {'Monitor customer satisfaction trends' if avg_rating < 4.0 else 'Scale successful practices'}
    • {'Review cost structure' if total_revenue/6 < total_expenses*1.3 else 'Invest in growth'}
-   • {'Strengthen team performance' if len([e for e in self.data_manager.employee_data if e['performance'] < 4.0]) > 2 else 'Reward high performers'}
+   • {'Strengthen team performance' if len([e for e in self._data_manager.employee_data if e['performance'] < 4.0]) > 2 else 'Reward high performers'}
 
                 """
                 return exec_summary
@@ -554,39 +547,39 @@ Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M')}
 {'='*80}
 1. SALES & REVENUE ANALYSIS
 {'='*80}
-{self.sales_tool._run("summary")}
+{self._sales_tool._run("summary")}
 
-{self.sales_tool._run("trends")}
+{self._sales_tool._run("trends")}
 
 {'='*80}
 2. HUMAN RESOURCES ANALYSIS
 {'='*80}
-{self.employee_tool._run("overview")}
+{self._employee_tool._run("overview")}
 
-{self.employee_tool._run("performance")}
+{self._employee_tool._run("performance")}
 
-{self.employee_tool._run("compensation")}
+{self._employee_tool._run("compensation")}
 
 {'='*80}
 3. CUSTOMER SATISFACTION ANALYSIS
 {'='*80}
-{self.feedback_tool._run("summary")}
+{self._feedback_tool._run("summary")}
 
-{self.feedback_tool._run("insights")}
+{self._feedback_tool._run("insights")}
 
 {'='*80}
 4. FINANCIAL OVERVIEW
 {'='*80}
 """
                 # Financial analysis
-                expenses = self.data_manager.expense_data
+                expenses = self._data_manager.expense_data
                 total_expenses = sum(item["amount"] for item in expenses)
-                total_revenue = sum(item["revenue"] for item in self.data_manager.sales_data[-1:])  # Latest month
+                total_revenue = sum(item["revenue"] for item in self._data_manager.sales_data[-1:])  # Latest month
                 profit_margin = ((total_revenue - total_expenses) / total_revenue * 100) if total_revenue > 0 else 0
 
                 detailed_report += f"""
 💰 Monthly Financial Summary:
-   • Revenue (Latest Month): ${self.data_manager.sales_data[-1]['revenue']:,}
+   • Revenue (Latest Month): ${self._data_manager.sales_data[-1]['revenue']:,}
    • Total Expenses: ${total_expenses:,}
    • Net Profit: ${total_revenue - total_expenses:,}
    • Profit Margin: {profit_margin:.1f}%
@@ -618,9 +611,9 @@ Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M')}
    • Develop succession planning for key roles
 
 📊 RISK ASSESSMENT:
-   • Revenue Risk: {'Low' if len(self.data_manager.sales_data) > 0 and self.data_manager.sales_data[-1]['revenue'] > self.data_manager.sales_data[0]['revenue'] else 'Medium'}
-   • Customer Risk: {'Low' if sum(item['rating'] for item in self.data_manager.customer_feedback)/len(self.data_manager.customer_feedback) >= 4.0 else 'Medium'}
-   • Operational Risk: {'Low' if len([e for e in self.data_manager.employee_data if e['performance'] >= 4.0]) > len(self.data_manager.employee_data)/2 else 'Medium'}
+   • Revenue Risk: {'Low' if len(self._data_manager.sales_data) > 0 and self._data_manager.sales_data[-1]['revenue'] > self._data_manager.sales_data[0]['revenue'] else 'Medium'}
+   • Customer Risk: {'Low' if sum(item['rating'] for item in self._data_manager.customer_feedback)/len(self._data_manager.customer_feedback) >= 4.0 else 'Medium'}
+   • Operational Risk: {'Low' if len([e for e in self._data_manager.employee_data if e['performance'] >= 4.0]) > len(self._data_manager.employee_data)/2 else 'Medium'}
 
 REPORT PREPARED BY: Business Intelligence Agent
 NEXT REVIEW: {(datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d')}
@@ -635,6 +628,34 @@ NEXT REVIEW: {(datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d')}
 
     async def _arun(self, report_type: str) -> str:
         return self._run(report_type)
+
+
+class BusinessIntelligenceAgent:
+    def __init__(self, graph, *, max_iterations: int = 3):
+        self._graph = graph
+        self._messages: list[dict[str, str] | Any] = []
+        self._max_iterations = max_iterations
+
+    def run(self, query: str) -> str:
+        self._messages.append({"role": "user", "content": query})
+
+        # `CompiledStateGraph.invoke` signature can vary by langgraph version.
+        try:
+            result = self._graph.invoke(
+                {"messages": self._messages},
+                config={"recursion_limit": max(25, self._max_iterations * 10)},
+            )
+        except TypeError:
+            result = self._graph.invoke({"messages": self._messages})
+
+        messages = result.get("messages", [])
+        self._messages = messages
+
+        for msg in reversed(messages):
+            if msg.__class__.__name__ == "AIMessage":
+                return getattr(msg, "content", "") or ""
+
+        return getattr(messages[-1], "content", "") if messages else ""
 
 
 def create_business_intelligence_agent():
@@ -662,24 +683,18 @@ def create_business_intelligence_agent():
         BusinessReportGenerator()
     ]
 
-    # Advanced memory for maintaining context across analyses
-    memory = ConversationSummaryBufferMemory(
-        llm=llm,
-        memory_key="chat_history",
-        return_messages=True,
-        max_token_limit=1000
-    )
-
-    # Create the business intelligence agent
-    bi_agent = initialize_agent(
+    graph = create_agent(
+        model=llm,
         tools=tools,
-        llm=llm,
-        agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
-        verbose=True,
-        memory=memory,
-        handle_parsing_errors=True,
-        max_iterations=3
+        system_prompt=(
+            "You are a business intelligence assistant. "
+            "Use the available tools when needed to analyze the provided business data, "
+            "then respond with clear insights and recommendations."
+        ),
+        debug=True,
+        name="business_intelligence_agent",
     )
+    bi_agent = BusinessIntelligenceAgent(graph, max_iterations=3)
 
     print("✅ Business Intelligence Agent created with tools:")
     for tool in tools:
